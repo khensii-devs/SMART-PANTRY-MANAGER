@@ -7,11 +7,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smart_pantry_manager.data.AppDatabase;
+import com.example.smart_pantry_manager.data.PantryItem;
 import com.example.smart_pantry_manager.data.SeedData;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
+
+    private PantryAdapter adapter;
+    private AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,11 +33,26 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // --- DATABASE SEEDING ---
-        AppDatabase db = AppDatabase.getInstance(this);
+        // 1. Setup database and seed recipes
+        db = AppDatabase.getInstance(this);
         SeedData.seed(db);
 
-        // PRINT TO LOGCAT TO VERIFY
-        System.out.println("DATABASE CHECK: Total recipes in DB = " + db.recipeDao().getRecipeCount());
+        // 2. Setup RecyclerView
+        RecyclerView recyclerView = findViewById(R.id.pantryRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // 3. Load pantry items
+        List<PantryItem> items = db.pantryDao().getAllItems();
+        adapter = new PantryAdapter(items);
+        recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh the list when we return to this screen
+        if (adapter != null) {
+            adapter.setPantryList(db.pantryDao().getAllItems());
+        }
     }
 }
