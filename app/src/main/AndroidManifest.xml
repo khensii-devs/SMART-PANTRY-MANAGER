@@ -21,7 +21,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Step 7: Add Ingredient Screen -->
         <activity android:name=".AddEditItemActivity" />
+
+        <!-- Step 8: Suggested Recipes Screen -->
+        <activity android:name=".SuggestedRecipesActivity" />
+
     </application>
 
 </manifest>

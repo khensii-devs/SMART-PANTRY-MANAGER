@@ -52,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AddEditItemActivity.class);
             startActivity(intent);
         });
+
+        // 5. Make the "View Suggested Recipes" button open the Recipe Screen (Step 8)
+        findViewById(R.id.buttonViewRecipes).setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, SuggestedRecipesActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override
