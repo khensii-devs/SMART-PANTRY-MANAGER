@@ -1,5 +1,6 @@
 package com.example.smart_pantry_manager;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -45,6 +46,12 @@ public class MainActivity extends AppCompatActivity {
         List<PantryItem> items = db.pantryDao().getAllItems();
         adapter = new PantryAdapter(items);
         recyclerView.setAdapter(adapter);
+
+        // 4. Make the + button open the Add Screen (Step 7)
+        findViewById(R.id.addItemButton).setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, AddEditItemActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override
