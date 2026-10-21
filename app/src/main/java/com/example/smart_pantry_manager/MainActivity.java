@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smart_pantry_manager.data.AppDatabase;
 import com.example.smart_pantry_manager.data.PantryItem;
 import com.example.smart_pantry_manager.data.SeedData;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PantryAdapter adapter;
     private AppDatabase db;
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,38 +36,48 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // 1. Setup database and seed recipes
         db = AppDatabase.getInstance(this);
         SeedData.seed(db);
 
-        // 2. Setup RecyclerView
         RecyclerView recyclerView = findViewById(R.id.pantryRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // 3. Load pantry items
         List<PantryItem> items = db.pantryDao().getAllItems();
         adapter = new PantryAdapter(items);
         recyclerView.setAdapter(adapter);
 
-        // 4. Make the + button open the Add Screen (Step 7)
         findViewById(R.id.addItemButton).setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, AddEditItemActivity.class);
             startActivity(intent);
         });
 
-        // 5. Make the "View Suggested Recipes" button open the Recipe Screen (Step 8)
         findViewById(R.id.buttonViewRecipes).setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, SuggestedRecipesActivity.class);
             startActivity(intent);
+        });
+
+        // Bottom Navigation logic
+        bottomNav = findViewById(R.id.bottomNavigation);
+        bottomNav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_settings) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            return false;
         });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh the list when we return to this screen
         if (adapter != null) {
             adapter.setPantryList(db.pantryDao().getAllItems());
+        }
+
+        // Reset bottom nav to Pantry when coming back
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_pantry);
         }
     }
 }

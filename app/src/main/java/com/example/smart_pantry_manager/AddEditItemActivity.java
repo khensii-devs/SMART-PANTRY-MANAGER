@@ -11,6 +11,7 @@ import com.example.smart_pantry_manager.data.PantryItem;
 public class AddEditItemActivity extends AppCompatActivity {
 
     private EditText editName, editQuantity, editUnit;
+    private PantryItem existingItem = null; // Keeps track if we are editing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,19 +23,37 @@ public class AddEditItemActivity extends AppCompatActivity {
         editUnit = findViewById(R.id.editUnit);
         Button buttonSave = findViewById(R.id.buttonSave);
 
+        // CHECK IF WE ARE EDITING AN EXISTING ITEM
+        if (getIntent().hasExtra("ITEM_ID")) {
+            int itemId = getIntent().getIntExtra("ITEM_ID", -1);
+            AppDatabase db = AppDatabase.getInstance(this);
+            // Find the item in the database
+            for (PantryItem item : db.pantryDao().getAllItems()) {
+                if (item.id == itemId) {
+                    existingItem = item;
+                    break;
+                }
+            }
+
+            // Fill the text boxes with the existing data
+            if (existingItem != null) {
+                editName.setText(existingItem.name);
+                editQuantity.setText(String.valueOf(existingItem.quantity));
+                editUnit.setText(existingItem.unit);
+                buttonSave.setText("Update Ingredient");
+            }
+        }
+
         buttonSave.setOnClickListener(v -> {
-            // 1. Get the text from the boxes
             String name = editName.getText().toString().trim();
             String quantityStr = editQuantity.getText().toString().trim();
             String unit = editUnit.getText().toString().trim();
 
-            // 2. Validation
             if (name.isEmpty() || quantityStr.isEmpty() || unit.isEmpty()) {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 3. Convert quantity to a number
             double quantity;
             try {
                 quantity = Double.parseDouble(quantityStr);
@@ -43,14 +62,23 @@ public class AddEditItemActivity extends AppCompatActivity {
                 return;
             }
 
-            // 4. Save to database
             AppDatabase db = AppDatabase.getInstance(this);
-            PantryItem newItem = new PantryItem(name, quantity, unit, null);
-            db.pantryDao().insert(newItem);
 
-            // 5. Show success message and close this screen
-            Toast.makeText(this, "Ingredient Added!", Toast.LENGTH_SHORT).show();
-            finish(); // This takes the user back to the Pantry List
+            if (existingItem != null) {
+                // UPDATE EXISTING ITEM
+                existingItem.name = name;
+                existingItem.quantity = quantity;
+                existingItem.unit = unit;
+                db.pantryDao().update(existingItem);
+                Toast.makeText(this, "Ingredient Updated!", Toast.LENGTH_SHORT).show();
+            } else {
+                // CREATE NEW ITEM
+                PantryItem newItem = new PantryItem(name, quantity, unit, null);
+                db.pantryDao().insert(newItem);
+                Toast.makeText(this, "Ingredient Added!", Toast.LENGTH_SHORT).show();
+            }
+
+            finish(); // Go back to the Pantry List
         });
     }
 }

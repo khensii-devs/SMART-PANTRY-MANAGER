@@ -1,5 +1,6 @@
 package com.example.smart_pantry_manager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +32,6 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
 
         List<Recipe> matchedRecipes = new ArrayList<>();
 
-        // Run the strict matching logic for EVERY recipe
         for (Recipe recipe : allRecipes) {
             List<RecipeIngredient> required = db.recipeDao().getIngredientsForRecipe(recipe.id);
             if (IngredientMatcher.canMakeRecipe(recipe, required, pantry)) {
@@ -39,7 +39,6 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
             }
         }
 
-        // Setup UI
         RecyclerView recyclerView = findViewById(R.id.recipesRecyclerView);
         TextView emptyText = findViewById(R.id.emptyText);
 
@@ -55,8 +54,7 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
         }
     }
 
-    // Simple inner adapter for the recipes list
-    private static class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder> {
+    private class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder> {
         private final List<Recipe> recipes;
 
         RecipeAdapter(List<Recipe> recipes) { this.recipes = recipes; }
@@ -70,13 +68,21 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            holder.textView.setText(recipes.get(position).name);
+            Recipe recipe = recipes.get(position);
+            holder.textView.setText(recipe.name);
+
+            // OPEN DETAIL SCREEN ON CLICK
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(SuggestedRecipesActivity.this, RecipeDetailActivity.class);
+                intent.putExtra("RECIPE_ID", recipe.id);
+                startActivity(intent);
+            });
         }
 
         @Override
         public int getItemCount() { return recipes.size(); }
 
-        static class ViewHolder extends RecyclerView.ViewHolder {
+        class ViewHolder extends RecyclerView.ViewHolder {
             TextView textView;
             ViewHolder(View itemView) {
                 super(itemView);
